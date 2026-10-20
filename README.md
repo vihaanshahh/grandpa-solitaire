@@ -1,3 +1,15 @@
+# Grandpa Solitaire (ad-free build of Simple Solitaire Collection)
+
+This is an unmodified-gameplay, ad-free build of **[Simple Solitaire Collection](https://github.com/TobiasBielefeld/Simple-Solitaire)** by **Tobias Bielefeld**, which I (Vihaan) packaged for my grandfather's Android phone. All credit for the game goes to the upstream author and contributors; the full upstream git history is preserved here.
+
+- **License:** GNU GPL v3 (see [LICENSE.txt](LICENSE.txt)), same as upstream. The complete source for the APK in the Releases tab is this repository.
+- **No ads, no trackers, no permissions:** the app has no ad/analytics SDKs (only Android support libraries, `ambilwarna` color picker and `pagerslidingtabstrip`) and its manifest requests **zero** permissions, including no internet access.
+- **Changes from upstream (build only):** updated the Gradle build so it compiles with current tooling (Android Gradle Plugin 8.5, Gradle 8.7, JDK 17, compileSdk 34, minSdk 21, `namespace` moved into `app/build.gradle`), and release builds are signed with a debug key so the APK can be sideloaded directly. No game code was changed.
+
+Build: `gradle assembleRelease` (JDK 17, Android SDK 34) -> `app/build/outputs/apk/release/app-release.apk`.
+
+---
+
 [![GitHub version](https://badge.fury.io/gh/tobiasBielefeld%2FSimple-Solitaire.svg)](https://badge.fury.io/gh/tobiasBielefeld%2FSimple-Solitaire)
 ![license](http://img.shields.io/badge/license-GPLv3+-brightgreen.svg)
 ![platform](http://img.shields.io/badge/platform-Android-blue.svg)
