@@ -14,6 +14,8 @@ This is an unmodified-gameplay, ad-free build of **[Simple Solitaire Collection]
 
 Build: `gradle assembleRelease` (JDK 17, Android SDK 34) -> `app/build/outputs/apk/release/app-release.apk`.
 
+**vivo V2407 check (October 21, 2026):** The `v3.13.1-grandpa` release APK installed on Android 15. The game selection and Klondike screens opened, and the in-progress game resumed after returning Home and opening the app again. The APK manifest requests no permissions. This check did not simulate Android killing the game process or verify a completed game. On the phone, the launcher label is **Simple Solitaire Collection**. Grandpa Shield 0.4.2 explicitly approves this package so it opens without being sent Home.
+
 ---
 
 [![GitHub version](https://badge.fury.io/gh/tobiasBielefeld%2FSimple-Solitaire.svg)](https://badge.fury.io/gh/tobiasBielefeld%2FSimple-Solitaire)
