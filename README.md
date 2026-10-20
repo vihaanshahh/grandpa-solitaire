@@ -4,7 +4,13 @@ This is an unmodified-gameplay, ad-free build of **[Simple Solitaire Collection]
 
 - **License:** GNU GPL v3 (see [LICENSE.txt](LICENSE.txt)), same as upstream. The complete source for the APK in the Releases tab is this repository.
 - **No ads, no trackers, no permissions:** the app has no ad/analytics SDKs (only Android support libraries, `ambilwarna` color picker and `pagerslidingtabstrip`) and its manifest requests **zero** permissions, including no internet access.
-- **Changes from upstream (build only):** updated the Gradle build so it compiles with current tooling (Android Gradle Plugin 8.5, Gradle 8.7, JDK 17, compileSdk 34, minSdk 21, `namespace` moved into `app/build.gradle`), and release builds are signed with a debug key so the APK can be sideloaded directly. No game code was changed.
+- **Changes from upstream (build only):** updated the Gradle build so it compiles with current tooling (Android Gradle Plugin 8.5, Gradle 8.7, JDK 17, compileSdk 34, minSdk 21, `namespace` moved into `app/build.gradle`), and release builds are signed with a debug key so the APK can be sideloaded directly. No game code was changed in 3.13.
+- **3.13.1-grandpa: save & resume made robust and obvious.** Upstream already saves each game's full state (cards, undo history, score, timer) locally in SharedPreferences when the game is paused, and reopens the open game on launch. Additions:
+  - The in-progress game is **auto-saved after every card movement** (moves, stock draws, undos; debounced, after animations) and again in `onStop()`, so the game survives ColorOS killing the app in the background. The timer is snapshotted without stopping it.
+  - On launch the app opens **straight back into the last played game** if it is still in progress, even if the player had gone back to the main menu (upstream only did this if the app was closed from inside the game). The "Always start with menu" setting is still respected.
+  - A big green **"▶ Continue <game>"** button at the top of the main menu.
+  - The menu no longer launches a second copy of the game when Android recreates it after a process kill.
+  - Unit tests for the resume decision logic (`app/src/test`). Statistics and high scores remain local; still no permissions.
 
 Build: `gradle assembleRelease` (JDK 17, Android SDK 34) -> `app/build/outputs/apk/release/app-release.apk`.
 

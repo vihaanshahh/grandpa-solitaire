@@ -80,6 +80,21 @@ public class Timer {
      * Load the time, but subtract the time where the game was paused. Also load the winning time,
      * if there is one. The default is Zero, which is counted as no winning time
      */
+    /**
+     * grandpa-solitaire: save the elapsed time without stopping the timer (used by auto-save
+     * after every move, so the time survives even if the app process is killed).
+     */
+    public void saveSnapshot() {
+        if (stopUiUpdates || !running) {
+            return;
+        }
+
+        if (!gameLogic.hasWon()) {
+            prefs.saveEndTime(System.currentTimeMillis());
+            prefs.saveStartTime(startTime);
+        }
+    }
+
     public void load() {
         running = true;
 

@@ -1443,6 +1443,27 @@ public class Preferences {
         savedSharedData.edit().putInt(PREF_KEY_VEGAS_WIN_AMOUNT_OLD, getSavedVegasWinAmount()).apply();
     }
 
+    // grandpa-solitaire: remember the last played game, even after returning to the main menu
+    private static final String PREF_KEY_GRANDPA_LAST_PLAYED_GAME = "pref_key_grandpa_last_played_game";
+
+    public void saveLastPlayedGame(int value) {
+        savedSharedData.edit().putInt(PREF_KEY_GRANDPA_LAST_PLAYED_GAME, value).apply();
+    }
+
+    public int getLastPlayedGame() {
+        return savedSharedData.getInt(PREF_KEY_GRANDPA_LAST_PLAYED_GAME, DEFAULT_CURRENT_GAME);
+    }
+
+    /**
+     * Checks the saved data of any game (not only the currently loaded one) for an in-progress game.
+     */
+    public boolean hasGameInProgress(Context context, String sharedPrefName) {
+        SharedPreferences gameData = context.getSharedPreferences(sharedPrefName, MODE_PRIVATE);
+        return ResumeHelper.isInProgress(
+                gameData.getBoolean(PREF_KEY_GAME_FIRST_RUN, DEFAULT_FIRST_RUN),
+                gameData.getBoolean(PREF_KEY_GAME_WON, DEFAULT_WON));
+    }
+
     public void saveCurrentGame(int value) {
         savedSharedData.edit().putInt(PREF_KEY_CURRENT_GAME, value).apply();
     }

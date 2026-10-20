@@ -24,6 +24,7 @@ import android.content.res.Configuration;
 import android.graphics.RectF;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -85,6 +86,29 @@ public class GameManager extends CustomAppCompatActivity implements View.OnTouch
     private CardAndStack tapped = null;
     private RelativeLayout mainRelativeLayoutBackground;
     private boolean activityPaused;
+    private static final long AUTO_SAVE_DELAY_MS = 500;                        //grandpa-solitaire: debounce for auto-save
+    private final Handler autoSaveHandler = new Handler();
+    private final Runnable myAutoSaveRequest = () -> {
+        autoSaveHandler.removeCallbacks(this.autoSaveRunnable);
+        autoSaveHandler.postDelayed(this.autoSaveRunnable, AUTO_SAVE_DELAY_MS);
+    };
+    private final Runnable autoSaveRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (activityPaused || !hasLoaded || stopUiUpdates) {
+                return;                                                         //onPause() already saved everything
+            }
+
+            if (animate.cardIsAnimating() || dealCards.isRunning() || autoComplete.isRunning()
+                    || ensureMovability.isRunning()) {
+                autoSaveHandler.postDelayed(this, AUTO_SAVE_DELAY_MS);
+                return;
+            }
+
+            timer.saveSnapshot();
+            gameLogic.save();
+        }
+    };
     public ImageView hideMenu;
     public LinearLayout menuBar;
 
@@ -128,11 +152,21 @@ public class GameManager extends CustomAppCompatActivity implements View.OnTouch
         dealCards = new DealCards(gm);
         ensureMovability = new EnsureMovability();
 
+        int gameIndex;
         if (savedInstanceState != null && savedInstanceState.containsKey(GAME)) {
-            currentGame = lg.loadClass(gm, savedInstanceState.getInt(GAME));
+            gameIndex = savedInstanceState.getInt(GAME);
         } else {
-            currentGame = lg.loadClass(gm, getIntent().getIntExtra(GAME, -1));
+            gameIndex = getIntent().getIntExtra(GAME, -1);
         }
+        currentGame = lg.loadClass(gm, gameIndex);
+
+        //grandpa-solitaire: remember the last played game for "Continue" on the next launch
+        if (gameIndex >= 0) {
+            prefs.saveCurrentGame(gameIndex);
+            prefs.saveLastPlayedGame(gameIndex);
+        }
+
+        autoSaveRequest = myAutoSaveRequest;
 
         /*
          * Setting up callbacks
@@ -337,6 +371,26 @@ public class GameManager extends CustomAppCompatActivity implements View.OnTouch
         dealCards.pause();
 
         activityPaused = true;
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        //grandpa-solitaire: save again when the app goes to the background, in case ColorOS kills it
+        autoSaveHandler.removeCallbacks(autoSaveRunnable);
+        if (hasLoaded) {
+            gameLogic.save();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        autoSaveHandler.removeCallbacks(autoSaveRunnable);
+        if (autoSaveRequest == myAutoSaveRequest) {
+            autoSaveRequest = null;
+        }
+        super.onDestroy();
     }
 
     @Override

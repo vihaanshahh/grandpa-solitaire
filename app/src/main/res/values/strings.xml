@@ -715,4 +715,7 @@ Press on the main stack to deal one card to every tableau stack at once."</strin
 <string name="manual_Maze_rules">"Any card can be moved to an empty stack directly after a card of the same suit with one lower value, or to directly before a card of the same suit with one higher value. Aces can be moved to directly after any Queen.\n\nWithin a row, stacks are ordered left to right; the rows are ordered top to bottom. The last stack of one row is followed directly by the first stack of the next row, wrapping around from bottom to top."</string>
 <string name="manual_Maze_scoring">"Each pair of adjacent (ignoring gaps) cards in the correct order: 25"</string>
 
+<!-- grandpa-solitaire -->
+<string name="grandpa_continue_game">"▶  Continue %1$s"</string>
+
 </resources>

@@ -87,6 +87,7 @@ public class SharedData {
 
     public static WaitForAnimationHandler handlerTestIfWon;
     public static WaitForAnimationHandler handlerTestAfterMove;
+    public static Runnable autoSaveRequest;                 //grandpa-solitaire: set by GameManager, called after every card movement
 
     public static MovingCards movingCards = new MovingCards();
     public static LoadGame lg = new LoadGame();
@@ -243,6 +244,11 @@ public class SharedData {
         //following stuff in handlers, because they should wait until possible card movements are over.
         if (option == 0 && !stopUiUpdates) {
             handlerTestAfterMove.sendDelayed();
+        }
+
+        //grandpa-solitaire: auto-save after every movement (normal moves, stock draws, undos)
+        if (!stopUiUpdates && autoSaveRequest != null) {
+            autoSaveRequest.run();
         }
     }
 

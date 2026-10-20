@@ -14,6 +14,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TableLayout;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 
 import de.tobiasbielefeld.solitaire.R;
 import de.tobiasbielefeld.solitaire.classes.CustomAppCompatActivity;
+import de.tobiasbielefeld.solitaire.helper.ResumeHelper;
 import de.tobiasbielefeld.solitaire.ui.about.AboutActivity;
 import de.tobiasbielefeld.solitaire.ui.manual.Manual;
 import de.tobiasbielefeld.solitaire.ui.settings.Settings;
@@ -57,17 +59,66 @@ public class GameSelector extends CustomAppCompatActivity
 
         tableLayout = findViewById(R.id.tableLayoutGameChooser);
 
-        if (!prefs.getSavedStartWithMenu()) {
-            int savedGame = prefs.getSavedCurrentGame();
+        //grandpa-solitaire: big "Continue" button for the last played game
+        buttonContinueGame = findViewById(R.id.buttonContinueGame);
+        buttonContinueGame.setOnClickListener(v -> continueLastGame());
 
-            if (savedGame != DEFAULT_CURRENT_GAME) {
-                Intent intent = new Intent(getApplicationContext(), GameManager.class);
-                intent.putExtra(GAME, savedGame);
-                startActivityForResult(intent, 0);
+        //only decide on a real launch, not when Android recreates this activity (e.g. after the
+        //process was killed while a game was open, Android restores the game on top by itself)
+        if (savedInstanceState == null) {
+            if (!prefs.getSavedStartWithMenu()) {
+                //grandpa-solitaire: open the game that was open when the app was closed (upstream),
+                //or else the last played game if it is still in progress
+                int gameToOpen = ResumeHelper.chooseGameOnLaunch(false, prefs.getSavedCurrentGame(),
+                        prefs.getLastPlayedGame(), lg.getSharedPrefNameList().length,
+                        DEFAULT_CURRENT_GAME, this::hasGameInProgress);
+
+                if (gameToOpen != DEFAULT_CURRENT_GAME) {
+                    prefs.saveCurrentGame(gameToOpen);
+                    Intent intent = new Intent(getApplicationContext(), GameManager.class);
+                    intent.putExtra(GAME, gameToOpen);
+                    startActivityForResult(intent, 0);
+                }
+            } else {
+                prefs.saveCurrentGame(DEFAULT_CURRENT_GAME);
             }
-        } else {
-            prefs.saveCurrentGame(DEFAULT_CURRENT_GAME);
         }
+    }
+
+    private Button buttonContinueGame;
+
+    private boolean hasGameInProgress(int gameIndex) {
+        return prefs.hasGameInProgress(getApplicationContext(), lg.getSharedPrefNameOfGame(gameIndex));
+    }
+
+    private int getGameToContinue() {
+        return ResumeHelper.chooseGameToContinue(prefs.getLastPlayedGame(),
+                lg.getSharedPrefNameList().length, DEFAULT_CURRENT_GAME, this::hasGameInProgress);
+    }
+
+    private void updateContinueButton() {
+        int game = getGameToContinue();
+
+        if (game == DEFAULT_CURRENT_GAME) {
+            buttonContinueGame.setVisibility(View.GONE);
+        } else {
+            buttonContinueGame.setText(getString(R.string.grandpa_continue_game, lg.getGameName(getResources(), game)));
+            buttonContinueGame.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void continueLastGame() {
+        int game = getGameToContinue();
+
+        //avoid loading two games at once
+        if (game == DEFAULT_CURRENT_GAME || prefs.getSavedCurrentGame() != DEFAULT_CURRENT_GAME) {
+            return;
+        }
+
+        prefs.saveCurrentGame(game);
+        Intent intent = new Intent(getApplicationContext(), GameManager.class);
+        intent.putExtra(GAME, game);
+        startActivityForResult(intent, 0);
     }
 
     @Override
@@ -172,6 +223,7 @@ public class GameSelector extends CustomAppCompatActivity
     public void onResume() {
         super.onResume();
         loadGameList();
+        updateContinueButton();
     }
 
     /*
